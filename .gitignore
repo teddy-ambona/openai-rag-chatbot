@@ -90,3 +90,6 @@ target/
 
 # Python virtual environment
 /venv/
+
+# milvus volumes
+/volumes/

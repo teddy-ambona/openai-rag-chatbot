@@ -1,0 +1,69 @@
+target-version = "py311"
+line-length = 127
+respect-gitignore = false
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    "*.egg-info",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    "__pycache__",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+include = [
+    # To avoid ignoring files when running on Github actions
+]
+
+[lint]
+select = [
+    "E",  # pycodestyle
+    "F",  # pyflakes
+    "B",  # flake8-bugbear
+    "UP",  # pyupgrade
+    "I",  # isort
+    "D",  # pydocstyle
+    "S",  # flake8-bandit
+    "TID",  # flake8-tidy-imports
+]
+
+ignore = [
+    "S101",  # Test for use of assert
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+]
+
+unfixable = [
+    "B",  # Avoid trying to fix flake8-bugbear (`B`) violations.
+]
+
+[lint.pydocstyle]
+convention = "numpy"
+
+[per-file-ignores]
+# Ignore all directories named `tests`.
+"**tests/**" = ["D"]
+# Ignore all files that end in `_tests.py`.
+"*_tests.py" = ["D"]
+
+[lint.flake8-tidy-imports]
+# Disallow all relative imports.
+ban-relative-imports = "all"

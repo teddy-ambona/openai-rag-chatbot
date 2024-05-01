@@ -1,13 +1,35 @@
-import tiktoken
-import pandas as pd
-
-df = pd.read_csv("laser_eye_surgery_complications.csv")
+from helpers import embed
+from pymilvus import MilvusClient
 
 
-# To get the tokeniser corresponding to a specific model in the OpenAI API:
-enc = tiktoken.encoding_for_model("gpt-4")
+# Search the database based on input text
+def search(text, milvus_client):
+    # Search parameters for the index
+    search_params = {"metric_type": "L2"}
 
-df["token"] = df["text"].apply(enc.encode)
+    results = milvus_client.search(
+        collection_name="lasik_complications_db",
+        data=[embed(text)],  # Embeded search value
+        anns_field="embedding",  # Search across embeddings
+        param=search_params,
+        limit=5,  # Limit to five results per search
+        output_fields=["title"],  # Include title field in result
+    )
 
-x = 1
-# assert enc.decode(enc.encode("hello world")) == "hello world"
+    ret = []
+    for hit in results[0]:
+        row = [hit.id, hit.score, hit.entity.get("title")]  # Get the timestamp, text, keywords for the results
+        ret.append(row)
+    return ret
+
+
+# Set up a Milvus client
+client = MilvusClient(uri="http://localhost:19530")
+
+search_terms = ["self-improvement", "landscape"]
+
+for x in search_terms:
+    print("Search term:", x)
+    for result in search(x):
+        print(result)
+    print()

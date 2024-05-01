@@ -1,4 +1,13 @@
+# AI orchestration tool
 langchain
+
+# API used to convert text to embeddings and for LLM
 openai
+
+# For data wrangling
 pandas
+
+# Vector DB
+pymilvus
+
 tiktoken

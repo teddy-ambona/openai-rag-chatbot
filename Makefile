@@ -24,13 +24,26 @@ update-deps:
 install-deps:
 	python${PYTHON_VERSION} -m pip install -r requirements.txt
 
-## Delete all compiled Python files
+# ============================================================
+# DB commands
+# ============================================================
+
+## Start DB
+db-up:
+	docker-compose up
+
+## Stop DB
+db-down:
+	docker-compose down
+
+## Delete all compiled Python files and Milvus volumes
 clean:
 	find . -type f -name "*.py[co]" -delete
 	find . -type f -name ".coverage" -delete
 	find . -type d -name "_pycache_" -delete
 	find . -type d -name "*.egg-info" -exec rm -r "{}" +
 	find . -type d -name ".pytest_cache" -exec rm -r "{}" +
+	rm -rf  volumes
 
 #################################################################################
 # Self Documenting Commands                                                     #
