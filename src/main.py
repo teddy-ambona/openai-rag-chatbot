@@ -1,35 +1,58 @@
-from helpers import embed
+import logging
+import os
+
+from openai import OpenAI
 from pymilvus import MilvusClient
+
+from helpers import embed
 
 
 # Search the database based on input text
-def search(text, milvus_client):
+def search(embedding, milvus_client):
     # Search parameters for the index
     search_params = {"metric_type": "L2"}
 
     results = milvus_client.search(
         collection_name="lasik_complications_db",
-        data=[embed(text)],  # Embeded search value
+        data=[embedding],
         anns_field="embedding",  # Search across embeddings
-        param=search_params,
+        search_params=search_params,
         limit=5,  # Limit to five results per search
-        output_fields=["title"],  # Include title field in result
+        output_fields=["timestamp", "text", "keywords"],  # Include ts, original text and keywords in result
     )
 
     ret = []
     for hit in results[0]:
-        row = [hit.id, hit.score, hit.entity.get("title")]  # Get the timestamp, text, keywords for the results
-        ret.append(row)
+        # Get the timestamp, text, keywords for the results
+        ret.append(hit["entity"])
     return ret
 
 
 # Set up a Milvus client
-client = MilvusClient(uri="http://localhost:19530")
+milvus_client = MilvusClient(uri="http://localhost:19530")
+openai_client = OpenAI()
+openai_client.api_key = os.environ["OPENAI_API_KEY"]  # Use your own Open AI API Key here
 
-search_terms = ["self-improvement", "landscape"]
+res = milvus_client.get_load_state(collection_name="lasik_complications_db")
 
-for x in search_terms:
-    print("Search term:", x)
-    for result in search(x):
-        print(result)
-    print()
+
+# query = "How can I reduce my risk of complications before LASIK surgery?"
+query = "loss of sight"
+
+logging.info("Query: {query}")
+embedding = embed([query], openai_client)[0]
+
+results = search(embedding, milvus_client)
+
+for result in results:
+    print(result)
+
+# llm = ChatOpenAI(temperature=0.7, model_name="gpt-4")
+# memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
+
+# conversation_chain = ConversationalRetrievalChain.from_llm(
+#     llm=llm,
+#     chain_type="stuff",
+#     retriever=vectorstore.as_retriever(),
+#     memory=memory
+# )

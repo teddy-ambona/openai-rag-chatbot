@@ -1,3 +1,4 @@
+src = ["src"]
 target-version = "py311"
 line-length = 127
 respect-gitignore = false
