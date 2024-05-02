@@ -1,20 +1,23 @@
-import logging
+#!/usr/bin/env python
 import os
 
 import langchain
+from fastapi import FastAPI
 from langchain_community.vectorstores import Milvus
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langserve import add_routes
+
+from config import CONFIG
 
 # Enable logging the full prompt
 langchain.debug = True
 
 
 def format_docs(docs):
-    global texts
-    texts = [d.page_content for d in docs]
+    """Extract necessary information from the retrieved documents."""
     return "\n\n".join([d.page_content for d in docs])
 
 
@@ -23,16 +26,16 @@ embedding_function = OpenAIEmbeddings(openai_api_key=os.environ["OPENAI_API_KEY"
 
 # Instantiate Milvus retriever object based on previously populated collection
 vector_db = Milvus(
-    collection_name="lasik_complications_db",
+    collection_name=CONFIG["COLLECTION_NAME"],
     embedding_function=embedding_function,
-    connection_args={"host": "127.0.0.1", "port": "19530"},
+    connection_args={"host": CONFIG["MILVUS_HOST"], "port": CONFIG["MILVUS_PORT"]},
     vector_field="embedding",
     text_field="text",
 )
 retriever = Milvus.as_retriever(vector_db, search_kwargs=dict(k=3, score_threshold=0.8))
 
-# Instantiate LLM
-llm = ChatOpenAI(temperature=0.7, model_name="gpt-4")
+# Instantiate LLM, "temperature" controls the level of creativity of the model
+llm = ChatOpenAI(temperature=0.7, model_name=CONFIG["LLM_MODEL"])
 
 # Prompt engineering
 template = """Answer the question based only on the following context, be very verbose, refer to the below context only using the word "data":
@@ -44,13 +47,22 @@ Question: {question}
 
 prompt = ChatPromptTemplate.from_template(template)
 
+# Build chain
 chain = {"context": retriever | format_docs, "question": RunnablePassthrough()} | prompt | llm | StrOutputParser()
 
-# query = "How can I reduce my risk of complications before LASIK surgery?"
-query = "Is there a contraindication for computer programmers to get LASIK?"
+app = FastAPI(
+    title="LangChain Server",
+    version="1.0",
+    description="A simple api server using Langchain's Runnable interfaces",
+)
 
-# query = "is there possible loss of sight for LASIK according to data?"
+add_routes(
+    app,
+    chain,
+    path="/lasik_complications",
+)
 
-logging.info("Query: {query}")
+if __name__ == "__main__":
+    import uvicorn
 
-response = chain.invoke(query)
+    uvicorn.run(app, host=CONFIG["API_HOST"], port=CONFIG["API_PORT"])

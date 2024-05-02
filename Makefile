@@ -5,24 +5,15 @@ DRUN = docker run --rm
 DBASH = $(DRUN) -u root -v ${PWD}:/foo -w="/foo" python:$(PYTHON_VERSION) bash -c
 
 # ============================================================
-# python commands
+# App commands
 # ============================================================
 
-## Set up python interpreter envrionment
-create-environment:
-	python${PYTHON_VERSION} -m venv venv
-	. ./venv/bin/activate
+app-build:
+	docker build -t openai-rag-chatbot-app .
 
-## Pin dependency versions in requirements.txt
-update-deps:
-	$(DBASH) \
-	"pip install -U pip && \
-	pip install wheel pip-tools && \
-	pip-compile -U requirements.in"
-
-## Install dependencies
-install-deps:
-	python${PYTHON_VERSION} -m pip install -r requirements.txt
+app-run:
+	docker compose up app
+	python${PYTHON_VERSION} src/server.py
 
 # ============================================================
 # DB commands
@@ -30,11 +21,15 @@ install-deps:
 
 ## Start DB
 db-up:
-	docker-compose up
+	docker-compose up -d standalone
 
 ## Stop DB
 db-down:
-	docker-compose down
+	docker compose down
+
+## Populate DB with the LASIK eye surgery complications dataset
+db-populate:
+
 
 ## Delete all compiled Python files and Milvus volumes
 clean:
@@ -44,6 +39,12 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -r "{}" +
 	find . -type d -name ".pytest_cache" -exec rm -r "{}" +
 	rm -rf  volumes
+
+# ============================================================
+# API commands
+# ============================================================
+
+
 
 #################################################################################
 # Self Documenting Commands                                                     #

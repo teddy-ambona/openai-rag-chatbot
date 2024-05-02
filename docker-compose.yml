@@ -60,6 +60,13 @@ services:
       - "etcd"
       - "minio"
 
+  app:
+    container_name: openai-rag-chatbot-app
+    image: openai-rag-chatbot-app
+    network_mode: "host"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
 networks:
   default:
     name: milvus
