@@ -1,58 +1,56 @@
 import logging
 import os
 
-from openai import OpenAI
-from pymilvus import MilvusClient
+import langchain
+from langchain_community.vectorstores import Milvus
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.runnables import RunnablePassthrough
+from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
-from helpers import embed
-
-
-# Search the database based on input text
-def search(embedding, milvus_client):
-    # Search parameters for the index
-    search_params = {"metric_type": "L2"}
-
-    results = milvus_client.search(
-        collection_name="lasik_complications_db",
-        data=[embedding],
-        anns_field="embedding",  # Search across embeddings
-        search_params=search_params,
-        limit=5,  # Limit to five results per search
-        output_fields=["timestamp", "text", "keywords"],  # Include ts, original text and keywords in result
-    )
-
-    ret = []
-    for hit in results[0]:
-        # Get the timestamp, text, keywords for the results
-        ret.append(hit["entity"])
-    return ret
+# Enable logging the full prompt
+langchain.debug = True
 
 
-# Set up a Milvus client
-milvus_client = MilvusClient(uri="http://localhost:19530")
-openai_client = OpenAI()
-openai_client.api_key = os.environ["OPENAI_API_KEY"]  # Use your own Open AI API Key here
+def format_docs(docs):
+    global texts
+    texts = [d.page_content for d in docs]
+    return "\n\n".join([d.page_content for d in docs])
 
-res = milvus_client.get_load_state(collection_name="lasik_complications_db")
 
+# Instantiate embedding function object
+embedding_function = OpenAIEmbeddings(openai_api_key=os.environ["OPENAI_API_KEY"], model="text-embedding-3-small")
+
+# Instantiate Milvus retriever object based on previously populated collection
+vector_db = Milvus(
+    collection_name="lasik_complications_db",
+    embedding_function=embedding_function,
+    connection_args={"host": "127.0.0.1", "port": "19530"},
+    vector_field="embedding",
+    text_field="text",
+)
+retriever = Milvus.as_retriever(vector_db, search_kwargs=dict(k=3, score_threshold=0.8))
+
+# Instantiate LLM
+llm = ChatOpenAI(temperature=0.7, model_name="gpt-4")
+
+# Prompt engineering
+template = """Answer the question based only on the following context, be very verbose, refer to the below context only using the word "data":
+
+{context}
+
+Question: {question}
+"""  # noqa: E501
+
+prompt = ChatPromptTemplate.from_template(template)
+
+chain = {"context": retriever | format_docs, "question": RunnablePassthrough()} | prompt | llm | StrOutputParser()
 
 # query = "How can I reduce my risk of complications before LASIK surgery?"
-query = "loss of sight"
+query = "Is there a contraindication for computer programmers to get LASIK?"
+
+# query = "is there possible loss of sight for LASIK according to data?"
 
 logging.info("Query: {query}")
-embedding = embed([query], openai_client)[0]
 
-results = search(embedding, milvus_client)
-
-for result in results:
-    print(result)
-
-# llm = ChatOpenAI(temperature=0.7, model_name="gpt-4")
-# memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
-
-# conversation_chain = ConversationalRetrievalChain.from_llm(
-#     llm=llm,
-#     chain_type="stuff",
-#     retriever=vectorstore.as_retriever(),
-#     memory=memory
-# )
+response = chain.invoke(query)

@@ -1,13 +1,15 @@
 # AI orchestration tool
-langchain
+langchain~=0.1
+langchain-openai~=0.1
 
 # API used to convert text to embeddings and for LLM
-openai
+openai~=1.25
 
 # For data wrangling
-pandas
+pandas~=2.2
 
 # Vector DB
-pymilvus
+pymilvus~=2.4
 
-tiktoken
+# Tokenizer compatible with OpenAI
+tiktoken~=0.6

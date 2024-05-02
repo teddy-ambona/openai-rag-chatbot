@@ -84,7 +84,10 @@ langchain-core==0.1.48
     # via
     #   langchain
     #   langchain-community
+    #   langchain-openai
     #   langchain-text-splitters
+langchain-openai==0.1.5
+    # via -r requirements.in
 langchain-text-splitters==0.0.1
     # via langchain
 langsmith==0.1.52
@@ -92,7 +95,7 @@ langsmith==0.1.52
     #   langchain
     #   langchain-community
     #   langchain-core
-marshmallow==3.21.1
+marshmallow==3.21.2
     # via
     #   dataclasses-json
     #   environs
@@ -112,7 +115,9 @@ numpy==1.26.4
     #   pyarrow
     #   scipy
 openai==1.25.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   langchain-openai
 orjson==3.10.2
     # via langsmith
 packaging==23.2
@@ -184,7 +189,9 @@ tenacity==8.2.3
     #   langchain-community
     #   langchain-core
 tiktoken==0.6.0
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   langchain-openai
 tqdm==4.66.2
     # via openai
 typing-extensions==4.11.0

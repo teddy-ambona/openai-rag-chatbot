@@ -6,8 +6,6 @@ import tiktoken
 from openai import OpenAI
 from pymilvus import DataType, MilvusClient
 
-from helpers import embed
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(name)s | %(levelname)s | %(message)s")
 
 # Source: https://www.kaggle.com/datasets/shivamb/lasik-complications-dataset/data
@@ -60,11 +58,15 @@ df["token"] = df["text"].apply(enc.encode)
 total_number_tokens = df["token"].apply(len).sum()
 logging.info(f"Total number of tokens passed into the OpenAI API: {total_number_tokens}")
 
+# Extract embedding from text using OpenAI
 # Premium OpenAI account limited to 1'000'000 tokens per minute, dataset has less than 300'000 tokens
 logging.info("Getting embeddings from OpenAI")
 
-embeddings = embed(df["text"].to_list(), openai_client)
-df["embedding"] = embeddings
+response = openai_client.embeddings.create(
+    input=df["text"].to_list(),
+    model="text-embedding-3-small",
+)
+df["embedding"] = [x.embedding for x in response.data]
 
 logging.info(f"Inserting {len(df)} rows")
 df_insert = df[["id", "timestamp", "text", "embedding", "keywords"]]
