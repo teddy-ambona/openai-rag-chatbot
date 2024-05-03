@@ -1,4 +1,5 @@
-# lasik-openai-rag
+# lasik-openai-rag &middot; ![ci](https://github.com/teddy-ambona/openai-rag-chatbot/actions/workflows/cicd.yml/badge.svg)
+
 
 Demo LLM (RAG pipeline) web app running locally using docker-compose. LLM and embedding models are consumed from OpenAI.
 
@@ -6,9 +7,12 @@ Demo LLM (RAG pipeline) web app running locally using docker-compose. LLM and em
 
 A Retrieval Augmented Generation (RAG) pipeline is a NLP framework that combines information retrieval with text generation to produce responses or generate text. It uses a retriever to find relevant information and a generator to create responses based on that information.
 
+
 The app architecture is presented below:
 
-<insert diagram>
+<img src="./docs/diagrams/rag-architecture.png" width="850"/>
+
+Sequence diagram:
 
 ```mermaid
 sequenceDiagram
@@ -23,6 +27,9 @@ sequenceDiagram
     OpenAI LLM-->>Langserve API: generated answer
 ```
 
+UX:
+
+<img src="./docs/img/ui.png" width="850"/>
 
 
 ## 2 - Prerequisites
@@ -31,12 +38,6 @@ sequenceDiagram
 - An [OpenAI key](https://openai.com/)(account should be provisioned with $5, which is the minimum amount allowed)
 
 ## 3 - Quickstart
-
-Spin up Milvus DB:
-
-```bash
-make db-up
-```
 
 Build app Docker image:
 
@@ -50,17 +51,27 @@ Set your OpenAI API key as environment variable
 export OPENAI_API_KEY=<your-api-key>
 ```
 
+Spin up Milvus DB:
+
+```bash
+make db-up
+```
+
 Populate DB with the LASIK eye surgery complications dataset:
 
 ```bash
 make db-populate
 ```
 
+<img src="./docs/img/db_populate.png" width="850"/>
+
 Spin-up API:
 
 ```bash
 make app-run
 ```
+
+<img src="./docs/img/app_run.png" width="850"/>
 
 The chatbot is now available at [http://localhost:8000/lasik_complications/playground/](http://localhost:8000/lasik_complications/playground/)
 
@@ -73,7 +84,7 @@ Display all available commands with:
 make help
 ```
 
-<insert screenshot>
+<img src="./docs/img/make_help.png" width="850"/>
 
 Clean up
 
@@ -85,7 +96,7 @@ make clean
 
 ## Milvus
 
-[Milvus] is an open-source vector database engine developed by Zilliz, designed to store and manage large-scale vector data, such as embeddings, features, and high-dimensional data. It provides efficient storage, indexing, and retrieval capabilities for **vector similarity search tasks**.
+[Milvus](https://github.com/milvus-io/milvus) is an open-source vector database engine developed by Zilliz, designed to store and manage large-scale vector data, such as embeddings, features, and high-dimensional data. It provides efficient storage, indexing, and retrieval capabilities for **vector similarity search tasks**.
 
 ## LLMOps
 
