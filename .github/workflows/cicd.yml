@@ -1,0 +1,93 @@
+---
+name: Application code CICD Pipeline
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Check for code styling, static code issues
+        run: |
+          pip install pre-commit
+          pre-commit install
+          pre-commit run --all-files -v
+
+  image-misconfiguration:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Run Trivy misconfiguration scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: config
+
+          # File to scan
+          scan-ref: Dockerfile
+          format: table
+          exit-code: 1
+          vuln-type: security-check
+          severity: CRITICAL,HIGH
+
+  build:
+    # Build Docker image and upload it to the pipeline artifacts.
+    # The image will be re-used in the downstream jobs
+    needs: [lint, image-misconfiguration]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build image tag
+        id: build_image_tag
+        run: |
+          echo "::set-output name=IMAGE_TAG::$(make app-get-version)"
+          echo "::set-output name=ACT::${ACT}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./Dockerfile
+          tags: ${{ steps.build_image_tag.outputs.IMAGE_TAG }}
+          outputs: type=docker,dest=/tmp/openai-rag-chatbot-app.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: openai-rag-chatbot-app
+          path: /tmp/openai-rag-chatbot-app.tar
+    outputs:
+      SUFFIX: ${{ steps.build_image_tag.outputs.SUFFIX }}
+      IMAGE_TAG: ${{ steps.build_image_tag.outputs.IMAGE_TAG }}
+      ACT: ${{ steps.build_image_tag.outputs.ACT }}
+
+  image-vulnerabilities:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: openai-rag-chatbot-app
+          path: /tmp
+
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/openai-rag-chatbot-app.tar
+          docker image ls -a
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ needs.build.outputs.IMAGE_TAG }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: library
+          severity: CRITICAL,HIGH

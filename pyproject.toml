@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "openai-rag-chatbot"
+authors = []
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+# AI orchestration tool
+langchain = "~0.1"
+langchain-openai = "~0.1"
+
+# REST API Wrapper
+langserve = { version = "~0.1", extras = ["all"] } 
+
+# API used to convert text to embeddings and for LLM
+openai= "~1.25"
+
+# For data wrangling
+pandas= "~2.2"
+
+# Vector DB
+pymilvus= "~2.4"
+
+# Tokenizer compatible with OpenAI
+tiktoken= "~0.6"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
