@@ -9,9 +9,9 @@ jobs:
       - uses: actions/checkout@v2
       - name: Check for code styling, static code issues
         run: |
-          - pip install pre-commit
-          - pre-commit install
-          - pre-commit run --all-files -v
+          pip install pre-commit
+          pre-commit install
+          pre-commit run --all-files -v
 
   image-misconfiguration:
     runs-on: ubuntu-latest
