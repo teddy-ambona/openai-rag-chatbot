@@ -40,14 +40,7 @@ jobs:
       - name: Build image tag
         id: build_image_tag
         run: |
-          BRANCH_NAME=${GITHUB_REF##*/}
-          echo "$BRANCH_NAME"
-          SUFFIX=""
-          if [ "$BRANCH_NAME" != "main" ]; then
-            SUFFIX="-${BRANCH_NAME}.dev.${GITHUB_SHA}"
-          fi
-          echo "::set-output name=SUFFIX::${SUFFIX}"
-          echo "::set-output name=IMAGE_TAG::$(make app-get-version)${SUFFIX}"
+          echo "::set-output name=IMAGE_TAG::$(make app-get-version)"
           echo "::set-output name=ACT::${ACT}"
 
       - name: Checkout
@@ -99,7 +92,7 @@ jobs:
           vuln-type: library
           severity: CRITICAL,HIGH
 
-  integration-tests:
+  end-to-end-tests:
     needs: [build, image-vulnerabilities]
     runs-on: ubuntu-latest
     env:
