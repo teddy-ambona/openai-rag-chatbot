@@ -56,8 +56,15 @@ make help
 
 <insert screenshot>
 
+Clean up
+
+```bash
+make clean
+```
 
 ## 4 - Project file structure
+
+## LLMOps
 
 ## 5 - Langchain
 

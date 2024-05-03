@@ -1,19 +1,26 @@
-.PHONY: create-environment
+.PHONY: app-build app-run db-up db-down db-populate clean
 
 PYTHON_VERSION = 3.11
 DRUN = docker run --rm
 DBASH = $(DRUN) -u root -v ${PWD}:/foo -w="/foo" python:$(PYTHON_VERSION) bash -c
+IMAGE_NAME = openai-rag-chatbot-app
+IMAGE_VERSION = 0.0.0
 
 # ============================================================
 # App commands
 # ============================================================
 
+## Buid Docker image of Langserve app
 app-build:
-	docker build -t openai-rag-chatbot-app .
+	docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .
 
+## Run Docker image
 app-run:
 	docker compose up app
-	python${PYTHON_VERSION} src/server.py
+
+## Return API version (useful for tagging Docker image in CI)
+app-get-version:
+	echo ${IMAGE_NAME}:${IMAGE_VERSION}
 
 # ============================================================
 # DB commands
@@ -21,7 +28,7 @@ app-run:
 
 ## Start DB
 db-up:
-	docker-compose up -d standalone
+	docker-compose up -d milvus-standalone
 
 ## Stop DB
 db-down:
@@ -29,7 +36,7 @@ db-down:
 
 ## Populate DB with the LASIK eye surgery complications dataset
 db-populate:
-
+	docker compose run db-populate
 
 ## Delete all compiled Python files and Milvus volumes
 clean:
@@ -39,12 +46,6 @@ clean:
 	find . -type d -name "*.egg-info" -exec rm -r "{}" +
 	find . -type d -name ".pytest_cache" -exec rm -r "{}" +
 	rm -rf  volumes
-
-# ============================================================
-# API commands
-# ============================================================
-
-
 
 #################################################################################
 # Self Documenting Commands                                                     #

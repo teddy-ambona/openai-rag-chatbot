@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 python:3.11 as base
+FROM python:3.11
 
 # Create app user
 RUN groupadd -r user && useradd -r -g user --create-home app
@@ -15,15 +15,16 @@ RUN apt-get -y update && \
     apt-get clean
 
 # Create virtual environment and activate it
-RUN pip install wheel pipx
-RUN pipx install poetry
-ENV PATH="/root/.local/bin:${PATH}"
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+RUN python -m pip install wheel poetry==1.8.2
 
 COPY poetry.lock pyproject.toml ./
 
-# Install required libraries
+# Install required libraries in the virtual environment
 RUN poetry install --no-root
-ENV PATH="/app/venv/bin:$PATH"
 
 # Python won’t try to write .pyc files on the import of source modules
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -31,9 +32,10 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # Copy python files
-COPY src ./
+COPY src ./src
+COPY data ./data
 
 # Using non-root user to reduce vulnerabilities
 USER app
 
-ENTRYPOINT ["python", "src/serve.py"]
+CMD ["python", "src/server.py"]

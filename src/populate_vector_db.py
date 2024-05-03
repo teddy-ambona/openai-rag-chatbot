@@ -41,6 +41,7 @@ index_params.add_index(field_name="embedding", index_type="IVF_FLAT", metric_typ
 milvus_client.create_collection(collection_name=CONFIG["COLLECTION_NAME"], schema=schema, index_params=index_params)
 
 df = pd.read_csv("data/laser_eye_surgery_complications.csv")
+df = df.head()
 df["date"] = pd.to_datetime(df["date"])
 df["timestamp"] = df["date"].astype(int)
 df["keywords"] = df["keywords"].apply(lambda k: str(k) if not pd.isnull(k) else "")

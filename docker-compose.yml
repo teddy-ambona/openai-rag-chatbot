@@ -36,7 +36,7 @@ services:
       timeout: 20s
       retries: 3
 
-  standalone:
+  milvus-standalone:
     container_name: milvus-standalone
     image: milvusdb/milvus:v2.4.0
     command: ["milvus", "run", "standalone"]
@@ -62,8 +62,16 @@ services:
 
   app:
     container_name: openai-rag-chatbot-app
-    image: openai-rag-chatbot-app
-    network_mode: "host"
+    restart: "no"
+    image: openai-rag-chatbot-app:0.0.0
+    ports:
+      - "8000:8000"
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+
+  db-populate:
+    image: openai-rag-chatbot-app:0.0.0
+    command: python src/populate_vector_db.py
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
 
