@@ -44,7 +44,7 @@ jobs:
         id: build_image_tag
         run: |
           echo "::set-output name=IMAGE_TAG::$(make app-get-version)"
-          echo "::set-output name=ACT::${ACT}
+          echo "::set-output name=ACT::${ACT}"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
