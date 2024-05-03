@@ -20,7 +20,7 @@ app-run:
 
 ## Return API version (useful for tagging Docker image in CI)
 app-get-version:
-	echo ${IMAGE_NAME}:${IMAGE_VERSION}
+	@echo ${IMAGE_NAME}:${IMAGE_VERSION}
 
 # ============================================================
 # DB commands
