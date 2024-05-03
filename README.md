@@ -131,6 +131,12 @@ Sourced from [Lasik (Laser Eye Surgery) Complications](https://www.kaggle.com/da
 
 ## CICD
 
+<img src="./docs/img/cicd.png" width="700"/>
+
+- **lint:** Lints .py files in the repo with [ruff](https://github.com/astral-sh/ruff)
+- **image-misconfiguration:** Detect configuration issues in app Dockerfile (Trivy)
+- **build:** Build app Docker image and push it to the pipeline artifacts
+- **image-vulnerabilities:** App image vulnerablities scanner (Trivy)
 
 
 ## Langchain
